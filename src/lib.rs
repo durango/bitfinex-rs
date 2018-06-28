@@ -1,4 +1,4 @@
-#[macro_use] 
+#[macro_use]
 extern crate error_chain;
 
 extern crate hex;
@@ -10,11 +10,10 @@ extern crate serde_json;
 extern crate tungstenite;
 extern crate url;
 
-#[macro_use] 
+#[macro_use]
 extern crate serde_derive;
 
 mod book;
-mod client;
 mod ticker;
 mod trades;
 mod orders;
@@ -24,6 +23,7 @@ mod account;
 pub mod api;
 pub mod pairs;
 pub mod currency;
+pub mod client;
 pub mod precision;
 pub mod websockets;
 pub mod events;
