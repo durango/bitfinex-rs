@@ -19,7 +19,7 @@ pub trait EventHandler {
     fn on_connect(&mut self, event: NotificationEvent);
     fn on_subscribed(&mut self, event: NotificationEvent);
     fn on_data_event(&mut self, event: DataEvent);
-    fn on_error(&mut self, message: Error); 
+    fn on_error(&mut self, message: Error);
 }
 
 pub enum EventType {
@@ -37,7 +37,7 @@ pub struct WebSockets {
     socket: Option<(WebSocket<AutoStream>, Response)>,
     sender: Sender,
     rx: mpsc::Receiver<WsMessage>,
-    event_handler: Option<Box<EventHandler>>, 
+    event_handler: Option<Box<EventHandler + Send>>,
 }
 
 impl WebSockets {
@@ -70,7 +70,7 @@ impl WebSockets {
         }
     }
 
-    pub fn add_event_handler<H>(&mut self, handler: H) where H: EventHandler + 'static {
+    pub fn add_event_handler<H>(&mut self, handler: H) where H: EventHandler + Send + 'static {
         self.event_handler = Some(Box::new(handler));
     }
 
@@ -98,16 +98,16 @@ impl WebSockets {
 
         if let Err(error_msg) = self.sender.send(&msg.to_string()) {
             self.error_hander(error_msg);
-        } 
+        }
     }
 
-    pub fn subscribe_books<S, P, F>(&mut self, symbol: S, et: EventType, prec: P, freq: F, len: u32) 
-        where S: Into<String>, P: Into<String>, F: Into<String> 
+    pub fn subscribe_books<S, P, F>(&mut self, symbol: S, et: EventType, prec: P, freq: F, len: u32)
+        where S: Into<String>, P: Into<String>, F: Into<String>
     {
         let msg = json!(
             {
-                "event": "subscribe", 
-                "channel": "book", 
+                "event": "subscribe",
+                "channel": "book",
                 "symbol": self.format_symbol(symbol.into(), et),
                 "prec": prec.into(),
                 "freq": freq.into(),
@@ -122,7 +122,7 @@ impl WebSockets {
     fn error_hander(&mut self, error_msg: Error) {
         if let Some(ref mut h) = self.event_handler {
             h.on_error(error_msg);
-        }        
+        }
     }
 
     fn format_symbol(&mut self, symbol: String, et: EventType) -> String {
@@ -183,7 +183,7 @@ impl WebSockets {
                 }
             }
         }
-    } 
+    }
 }
 
 
